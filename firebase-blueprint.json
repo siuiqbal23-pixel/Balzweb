@@ -1,0 +1,115 @@
+{
+  "entities": {
+    "Order": {
+      "title": "Order",
+      "description": "Topup order records",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string", "maxLength": 128 },
+        "gameId": { "type": "string", "maxLength": 128 },
+        "gameName": { "type": "string", "maxLength": 128 },
+        "itemId": { "type": "string", "maxLength": 128 },
+        "itemName": { "type": "string", "maxLength": 128 },
+        "basePrice": { "type": "number" },
+        "sellPrice": { "type": "number" },
+        "userId": { "type": "string", "maxLength": 128 },
+        "serverId": { "type": "string", "maxLength": 128 },
+        "customerPhone": { "type": "string", "maxLength": 128 },
+        "paymentMethod": { "type": "string", "maxLength": 128 },
+        "proofImageUrl": { "type": "string", "maxLength": 1000000 },
+        "status": { "type": "string", "enum": ["pending", "processing", "completed", "cancelled"] },
+        "notes": { "type": "string", "maxLength": 500 },
+        "whatsappUrl": { "type": "string", "maxLength": 1000 }
+      },
+      "required": ["id", "createdAt", "gameId", "gameName", "itemId", "itemName", "basePrice", "sellPrice", "userId", "paymentMethod", "status"]
+    },
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile data",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "email": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 128 },
+        "avatarUrl": { "type": "string", "maxLength": 1000 },
+        "googleId": { "type": "string", "maxLength": 128 },
+        "phoneNumber": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string", "maxLength": 128 },
+        "lastLoginAt": { "type": "string", "maxLength": 128 },
+        "totalOrders": { "type": "number" },
+        "totalSpent": { "type": "number" },
+        "isOnline": { "type": "boolean" },
+        "isEmailVerified": { "type": "boolean" }
+      },
+      "required": ["id", "email", "name"]
+    },
+    "SystemSettings": {
+      "title": "SystemSettings",
+      "description": "Global application system settings",
+      "type": "object",
+      "properties": {
+        "ownerWhatsApp": { "type": "string", "maxLength": 128 },
+        "telegramBotToken": { "type": "string", "maxLength": 256 },
+        "telegramChatId": { "type": "string", "maxLength": 128 },
+        "tngAccountName": { "type": "string", "maxLength": 128 },
+        "tngQrImageUrl": { "type": "string", "maxLength": 1000 },
+        "fpxEnabled": { "type": "boolean" },
+        "autoFeeAmount": { "type": "number" }
+      }
+    },
+    "PromoBanner": {
+      "title": "PromoBanner",
+      "description": "Promotional banner advertisements",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 256 },
+        "subtitle": { "type": "string", "maxLength": 256 },
+        "badge": { "type": "string", "maxLength": 128 },
+        "imageUrl": { "type": "string", "maxLength": 1000 },
+        "gameSlug": { "type": "string", "maxLength": 128 },
+        "discountText": { "type": "string", "maxLength": 128 },
+        "isActive": { "type": "boolean" }
+      },
+      "required": ["id", "title", "subtitle", "imageUrl", "isActive"]
+    },
+    "UserActivityLog": {
+      "title": "UserActivityLog",
+      "description": "Audit activity logs",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "userName": { "type": "string", "maxLength": 128 },
+        "userEmail": { "type": "string", "maxLength": 128 },
+        "type": { "type": "string", "enum": ["login", "register", "order_placed", "profile_updated"] },
+        "details": { "type": "string", "maxLength": 500 },
+        "timestamp": { "type": "string", "maxLength": 128 }
+      },
+      "required": ["id", "userId", "type", "details", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/orders/{orderId}": {
+      "schema": { "$ref": "#/entities/Order" },
+      "description": "Topup orders collection"
+    },
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "User profiles collection"
+    },
+    "/settings/{settingId}": {
+      "schema": { "$ref": "#/entities/SystemSettings" },
+      "description": "System settings collection"
+    },
+    "/banners/{bannerId}": {
+      "schema": { "$ref": "#/entities/PromoBanner" },
+      "description": "Promo banners collection"
+    },
+    "/activity_logs/{logId}": {
+      "schema": { "$ref": "#/entities/UserActivityLog" },
+      "description": "Activity logs collection"
+    }
+  }
+}

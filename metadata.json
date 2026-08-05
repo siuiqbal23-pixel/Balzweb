@@ -1,0 +1,6 @@
+{
+  "name": "TopupBalz",
+  "description": "Platform Topup Game Pantas & Murah - Premium Gaming Marketplace Malaysia dengan Instant TnG eWallet & WhatsApp Orders",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
