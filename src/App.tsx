@@ -24,7 +24,7 @@ import {
   INITIAL_SETTINGS,
   calculateSellPrice,
 } from './data/initialData';
-import { Flame, Zap, Gamepad2, CheckCircle2, Filter } from 'lucide-react';
+import { Flame, Zap, Gamepad2, CheckCircle2, Filter, Sparkles, ShieldCheck, Clock3, Star } from 'lucide-react';
 
 export default function App() {
   const [games, setGames] = useState<Game[]>(INITIAL_GAMES);
@@ -122,7 +122,7 @@ export default function App() {
     };
 
     sendPresencePing();
-    const presenceInterval = setInterval(sendPresencePing, 8000); // Ping every 8s
+    const presenceInterval = setInterval(sendPresencePing, 8000);
     return () => clearInterval(presenceInterval);
   }, [currentUser]);
 
@@ -170,7 +170,7 @@ export default function App() {
     };
 
     fetchServerData();
-    const interval = setInterval(fetchServerData, 3000); // Poll every 3s for live online sync
+    const interval = setInterval(fetchServerData, 3000);
     return () => clearInterval(interval);
   }, []);
 
@@ -219,17 +219,14 @@ export default function App() {
     }
   };
 
-  // Filter games according to search query & selected category
   const filteredGames = useMemo(() => {
     return games.filter((game) => {
-      // Search match
       const matchesSearch =
         game.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         game.slug.toLowerCase().includes(searchQuery.toLowerCase());
 
       if (!matchesSearch) return false;
 
-      // Category match
       if (activeCategory === 'all') return true;
       if (activeCategory === 'popular') return game.isPopular;
       if (activeCategory === 'promo') return game.isDiscounted || game.items.some((i) => i.bonusTag);
@@ -237,10 +234,9 @@ export default function App() {
     });
   }, [games, searchQuery, activeCategory]);
 
-  // Section groupings
   const popularGames = useMemo(() => games.filter((g) => g.isPopular), [games]);
+  const featuredGames = useMemo(() => (popularGames.length > 0 ? popularGames.slice(0, 3) : games.slice(0, 3)), [popularGames, games]);
 
-  // Review submission
   const handleAddReview = async (newRev: Omit<Review, 'id' | 'date' | 'verified'>) => {
     try {
       const res = await fetch('/api/reviews', {
@@ -265,7 +261,6 @@ export default function App() {
     }
   };
 
-  // Order Submission Handler
   const handleOrderSubmit = async (orderData: {
     gameId: string;
     gameName: string;
@@ -298,7 +293,6 @@ export default function App() {
         throw new Error(data.error || 'Gagal menghantar order');
       }
     } catch (err: any) {
-      // Local fallback if offline or server glitch
       const sellPrice = orderData.basePrice;
       const orderId = 'TB-' + Math.floor(100000 + Math.random() * 900000);
       const ownerNumber = settings.ownerWhatsApp.replace(/\D/g, '');
@@ -344,7 +338,6 @@ export default function App() {
     }
   };
 
-  // Shopping Cart Handlers
   const handleAddToCart = (itemData: Omit<CartItem, 'id'>) => {
     const newItem: CartItem = {
       ...itemData,
@@ -421,7 +414,6 @@ export default function App() {
     return { success: true, whatsappUrl: waUrl };
   };
 
-  // Admin Actions
   const handleSaveGame = async (gameToSave: Game) => {
     try {
       const res = await fetch('/api/games', {
@@ -551,16 +543,13 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#07090D] text-slate-100 flex flex-col font-sans selection:bg-orange-500 selection:text-slate-950 pb-20">
-      
-      {/* Toast Alert */}
       {toastMessage && (
-        <div className="fixed top-20 right-4 z-50 p-4 rounded-2xl bg-slate-900 border border-orange-500/60 text-white text-xs font-bold shadow-[0_0_25px_rgba(255,140,0,0.4)] flex items-center gap-2 animate-bounce">
+        <div className="fixed top-20 right-4 z-50 p-4 rounded-2xl bg-slate-900 border border-orange-500/60 text-white text-xs font-bold shadow-[0_0_25px_rgba(255,140,0,0.4)] flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
           <span>{toastMessage}</span>
         </div>
       )}
 
-      {/* Header Bar */}
       <Header
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
@@ -583,7 +572,6 @@ export default function App() {
         onOpenLiveChat={handleOpenLiveChatWithAuth}
       />
 
-      {/* Hero Banner Section (Mainly on Menu Tab) */}
       {activeTab === 'menu' && (
         <HeroBanner
           banners={banners}
@@ -605,13 +593,141 @@ export default function App() {
         />
       )}
 
-      {/* Main Dynamic View Container according to Bottom Navigation Bar */}
       <main id="catalog-section" className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 space-y-10">
-        
-        {/* BAR 1: MENU / TOPUP CATALOG */}
         {activeTab === 'menu' && (
           <>
-            {/* Category Navigation Pills */}
+            <section className="glass-panel rounded-[30px] border border-orange-500/20 overflow-hidden">
+              <div className="grid lg:grid-cols-[1.25fr_0.75fr] gap-6 p-6 md:p-8">
+                <div className="space-y-6">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-orange-500/30 bg-orange-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-orange-300">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    TopupBalz Premium
+                  </div>
+
+                  <div className="space-y-4">
+                    <h1 className="text-3xl md:text-5xl font-black tracking-tight leading-tight text-white">
+                      Topup game cepat, selamat dan <span className="text-orange-400">paling murah</span>
+                    </h1>
+                    <p className="max-w-xl text-sm md:text-base text-slate-300 leading-7">
+                      Platform topup game terbaik di Malaysia untuk Mobile Legends, Free Fire, Valorant, Genshin, dan banyak lagi.
+                      Proses instant, harga kompetitif, sokongan 24/7 dan pembayaran mudah melalui eWallet.
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap gap-3">
+                    <button
+                      onClick={() => {
+                        const el = document.getElementById('catalog-section');
+                        if (el) el.scrollIntoView({ behavior: 'smooth' });
+                      }}
+                      className="px-5 py-3 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider shadow-[0_0_25px_rgba(249,115,22,0.4)]"
+                    >
+                      Beli Sekarang
+                    </button>
+                    <button
+                      onClick={handleOpenLiveChatWithAuth}
+                      className="px-5 py-3 rounded-2xl border border-slate-700 bg-slate-900/70 text-slate-100 font-black text-xs uppercase tracking-wider"
+                    >
+                      Chat Admin
+                    </button>
+                  </div>
+
+                  <div className="flex flex-wrap gap-3 text-[11px] text-slate-300">
+                    {[
+                      'Instant delivery',
+                      '7K+ pelanggan',
+                      'Bayaran selamat',
+                      'Live support',
+                    ].map((tag) => (
+                      <span key={tag} className="rounded-full border border-slate-700 bg-slate-900/70 px-3 py-1.5">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid sm:grid-cols-2 gap-3">
+                  {[
+                    { label: 'Online sekarang', value: `${onlineCount}+`, icon: Sparkles },
+                    { label: 'Kadar respons', value: '1-5 min', icon: Clock3 },
+                    { label: 'Kualiti servis', value: '4.9/5', icon: Star },
+                    { label: 'Jaminan selamat', value: '100%', icon: ShieldCheck },
+                  ].map(({ label, value, icon: Icon }) => (
+                    <div key={label} className="premium-card rounded-2xl border border-slate-800 bg-[#0d1117]/90 p-4">
+                      <div className="mb-3 inline-flex rounded-xl bg-orange-500/10 p-2 text-orange-400">
+                        <Icon className="w-4 h-4" />
+                      </div>
+                      <div className="text-2xl font-black text-white">{value}</div>
+                      <div className="mt-1 text-[11px] text-slate-400">{label}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            {featuredGames.length > 0 && (
+              <section className="space-y-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-[0.2em] text-orange-400">Featured deals</p>
+                    <h2 className="mt-2 text-2xl font-black text-white">Topup paling laris hari ini</h2>
+                  </div>
+                  <button
+                    onClick={() => setActiveCategory('promo')}
+                    className="rounded-full border border-orange-500/30 bg-orange-500/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-orange-200"
+                  >
+                    Lihat promo
+                  </button>
+                </div>
+
+                <div className="grid md:grid-cols-3 gap-4">
+                  {featuredGames.map((game) => {
+                    const item = game.items?.[0];
+                    const startingPrice = item ? item.sellPrice ?? item.basePrice : 0;
+
+                    return (
+                      <div key={game.id} className="premium-card rounded-[28px] border border-slate-800 bg-[#0d1117]/80 p-4">
+                        <div className="flex items-start justify-between gap-4">
+                          <div>
+                            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-orange-400">{game.category}</p>
+                            <h3 className="mt-2 text-xl font-black text-white">{game.name}</h3>
+                          </div>
+                          {game.isDiscounted && (
+                            <span className="rounded-full bg-emerald-500/15 border border-emerald-500/40 px-2 py-1 text-[10px] font-black uppercase tracking-wider text-emerald-300">
+                              Promo
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="mt-5 rounded-2xl border border-slate-700 bg-slate-950/60 p-3">
+                          <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400">Mulai dari</p>
+                          <div className="mt-2 flex items-end gap-2">
+                            <span className="text-3xl font-black text-white">RM {startingPrice.toFixed(2)}</span>
+                            <span className="pb-1 text-xs text-slate-400">/ item</span>
+                          </div>
+                        </div>
+
+                        <div className="mt-4 flex flex-wrap gap-2 text-[10px] text-slate-300">
+                          {(game.items.slice(0, 3) ?? []).map((item) => (
+                            <span key={item.id} className="rounded-full border border-slate-700 bg-slate-900/80 px-2 py-1">
+                              {item.name}
+                            </span>
+                          ))}
+                        </div>
+
+                        <button
+                          onClick={() => setSelectedGame(game)}
+                          className="mt-5 w-full rounded-2xl bg-gradient-to-r from-orange-500 to-amber-400 px-4 py-3 text-xs font-black uppercase tracking-wider text-slate-950"
+                        >
+                          Pilih game
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
+
             <div className="flex items-center justify-between flex-wrap gap-4 border-b border-slate-800/80 pb-4">
               <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none w-full sm:w-auto">
                 <button
@@ -677,7 +793,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* Main Catalog Grid */}
             <section className="space-y-4 pt-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -729,7 +844,6 @@ export default function App() {
           </>
         )}
 
-        {/* BAR 2: ULASAN / REVIEWS */}
         {activeTab === 'reviews' && (
           <ReviewsSection
             reviews={reviews}
@@ -739,12 +853,10 @@ export default function App() {
           />
         )}
 
-        {/* BAR 3: TUTORIAL / GUIDES */}
         {activeTab === 'tutorials' && (
           <TutorialSection ownerWhatsApp={settings.ownerWhatsApp} />
         )}
 
-        {/* BAR 4: PROFILE & USERNAME AUTH */}
         {activeTab === 'profile' && (
           <UserProfileView
             currentUser={currentUser}
@@ -768,7 +880,6 @@ export default function App() {
           />
         )}
 
-        {/* ADMIN PANEL VIEW */}
         {activeTab === 'admin' && (
           <div className="space-y-6 animate-fadeIn">
             <div className="p-6 rounded-3xl bg-gradient-to-r from-slate-900 via-[#131926] to-slate-900 border border-rose-500/30 flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -778,13 +889,13 @@ export default function App() {
                 </span>
                 <h2 className="text-2xl font-black text-white">Profile Admin & Control Center</h2>
                 <p className="text-xs text-slate-400 max-w-xl">
-                  Sebarang perubahan harga, barang, senarai game, dan promo yang ditukar oleh Admin di sini akan <strong>terus bertukar secara automatik & online</strong> pada paparan semua pelanggan!
+                  Sebarang perubahan harga, barang, senarai game, dan promo yang ditukar oleh Admin di sini akan <strong>terus bertukar secara automatik & online</strong> pada paparan semua pelanggan.
                 </p>
               </div>
 
               <button
                 onClick={() => setAdminOpen(true)}
-                className="px-6 py-3 rounded-2xl bg-gradient-to-r from-rose-500 to-orange-500 text-slate-950 font-black text-xs uppercase tracking-wider shadow-[0_0_25px_rgba(244,63,94,0.5)] hover:scale-105 transition-all cursor-pointer shrink-0"
+                className="px-6 py-3 rounded-2xl bg-gradient-to-r from-rose-500 to-orange-500 text-slate-950 font-black text-xs uppercase tracking-wider shadow-[0_0_25px_rgba(244,63,94,0.5)] hover:scale-[1.02] transition-transform"
               >
                 Buka Full Window Panel
               </button>
@@ -808,10 +919,8 @@ export default function App() {
             />
           </div>
         )}
-
       </main>
 
-      {/* Topup Checkout Drawer / Modal */}
       {selectedGame && (
         <TopupModal
           game={selectedGame}
@@ -822,7 +931,6 @@ export default function App() {
         />
       )}
 
-      {/* Cart Modal */}
       <CartModal
         isOpen={cartModalOpen}
         onClose={() => setCartModalOpen(false)}
@@ -837,14 +945,12 @@ export default function App() {
         onSubmitCartOrders={handleSubmitCartOrders}
       />
 
-      {/* Live Chat Modal (WhatsApp-style 24/7 Admin Chat) */}
       <LiveChatModal
         isOpen={liveChatOpen}
         onClose={() => setLiveChatOpen(false)}
         userName={currentUser?.name || 'Pelanggan'}
       />
 
-      {/* Username Login Modal */}
       <UsernameLoginModal
         isOpen={loginModalOpen}
         onClose={() => setLoginModalOpen(false)}
@@ -856,7 +962,6 @@ export default function App() {
         }}
       />
 
-      {/* Order Tracker Modal */}
       {orderTrackerOpen && (
         <OrderTrackerModal
           onClose={() => setOrderTrackerOpen(false)}
@@ -865,7 +970,6 @@ export default function App() {
         />
       )}
 
-      {/* Admin Panel Modal (When triggered from Header / Instant badge) */}
       {adminOpen && activeTab !== 'admin' && (
         <AdminDashboard
           games={games}
@@ -885,7 +989,6 @@ export default function App() {
         />
       )}
 
-      {/* Gmail Integration Modal */}
       <GmailIntegrationModal
         isOpen={gmailModalOpen}
         onClose={() => setGmailModalOpen(false)}
@@ -893,7 +996,6 @@ export default function App() {
         onSuccessToast={(msg) => showToast(msg)}
       />
 
-      {/* Footer */}
       <Footer
         onOpenAdmin={() => {
           setActiveTab('admin');
@@ -903,7 +1005,6 @@ export default function App() {
         ownerWhatsApp={settings.ownerWhatsApp}
       />
 
-      {/* 9-Dots Grid Menu Overlay */}
       <NineDotsMenuModal
         isOpen={nineDotsOpen}
         onClose={() => setNineDotsOpen(false)}
@@ -912,13 +1013,11 @@ export default function App() {
         onOpenCalculator={() => setCalculatorOpen(true)}
       />
 
-      {/* Real Pocket Calculator Modal */}
       <RealCalculatorModal
         isOpen={calculatorOpen}
         onClose={() => setCalculatorOpen(false)}
       />
 
-      {/* BAR BAWAH PERSISTENT 5 NAV TAB DENGAN TITIK 9 */}
       <BottomNav
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -929,7 +1028,6 @@ export default function App() {
         cartCount={cart.reduce((a, b) => a + b.quantity, 0)}
         onOpenNineDots={() => setNineDotsOpen(true)}
       />
-
     </div>
   );
 }
