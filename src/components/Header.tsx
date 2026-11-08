@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Flame, Shield, ShieldCheck, Zap, Menu, X, User, ShoppingBag, Lock, Mail, ShoppingCart, MessageSquare, Headphones } from 'lucide-react';
+import { Search, Flame, Shield, ShieldCheck, Zap, Menu, X, User, ShoppingBag, Lock, Mail, ShoppingCart, MessageSquare, Headphones, Sun, Moon } from 'lucide-react';
 import { GameCategory } from '../types';
 
 interface HeaderProps {
@@ -15,6 +15,8 @@ interface HeaderProps {
   cartCount?: number;
   onOpenCart?: () => void;
   onOpenLiveChat?: () => void;
+  theme: 'dark' | 'light';
+  onToggleTheme: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -30,6 +32,8 @@ export const Header: React.FC<HeaderProps> = ({
   cartCount = 0,
   onOpenCart,
   onOpenLiveChat,
+  theme,
+  onToggleTheme,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -118,6 +122,18 @@ export const Header: React.FC<HeaderProps> = ({
               <span>Semak Pesanan</span>
             </button>
           </div>
+
+          {/* Theme switch: available on mobile and desktop */}
+          <button
+            type="button"
+            onClick={onToggleTheme}
+            aria-label={theme === 'dark' ? 'Tukar ke Light Mode' : 'Tukar ke Dark Mode'}
+            title={theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-orange-500/30 bg-orange-500/10 px-2.5 py-2 text-xs font-bold text-orange-500 hover:bg-orange-500/15"
+          >
+            {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            <span className="hidden sm:inline">{theme === 'dark' ? 'Light' : 'Dark'}</span>
+          </button>
 
           {/* Mobile Action Buttons */}
           <div className="flex items-center gap-2 lg:hidden">

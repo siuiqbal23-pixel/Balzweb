@@ -164,8 +164,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // If locked, show PIN prompt
   if (!isUnlocked) {
     return (
-      <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-lg flex items-center justify-center p-4 animate-fadeIn">
-        <div className="w-full max-w-md bg-[#0D1117] border border-orange-500/40 rounded-3xl p-6 sm:p-8 space-y-6 text-center shadow-[0_0_50px_rgba(255,140,0,0.3)]">
+      <div className="admin-scene fixed inset-0 z-50 flex items-center justify-center p-4 animate-fadeIn">
+        <div className="admin-panel admin-login-panel w-full max-w-md border border-orange-500/30 rounded-3xl p-6 sm:p-8 space-y-6 text-center">
           <div className="w-16 h-16 rounded-2xl bg-orange-500/10 border border-orange-500/40 text-orange-400 flex items-center justify-center mx-auto shadow-inner">
             <Lock className="w-8 h-8" />
           </div>
@@ -218,11 +218,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   );
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-fadeIn">
-      <div className="relative w-full max-w-6xl bg-[#0D1117] border border-orange-500/30 rounded-3xl shadow-[0_0_60px_rgba(255,140,0,0.25)] overflow-hidden my-auto flex flex-col max-h-[92vh]">
+    <div className="admin-scene fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-3 sm:p-6 animate-fadeIn">
+      <div className="admin-panel relative w-full max-w-6xl border border-orange-500/30 rounded-3xl overflow-hidden my-auto flex flex-col max-h-[92vh]">
         
         {/* Header Bar */}
-        <div className="bg-[#121824] p-3.5 sm:p-5 border-b border-slate-800 flex items-center justify-between gap-2 shrink-0 relative">
+        <div className="admin-topbar p-3.5 sm:p-5 border-b border-slate-800 flex items-center justify-between gap-2 shrink-0 relative">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <div className="p-2 bg-orange-500/10 border border-orange-500/30 text-orange-400 rounded-xl shrink-0">
               <Lock className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -408,7 +408,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </div>
 
         {/* Horizontal Scrollable Navigation Tabs (Larger Text & Clean Horizontal Layout) */}
-        <div className="bg-[#090B10] px-4 py-3 border-b border-slate-800 flex items-center gap-2 overflow-x-auto shrink-0 scrollbar-none">
+        <div className="admin-tabs px-4 py-3 border-b border-slate-800 flex items-center gap-2 overflow-x-auto shrink-0 scrollbar-none">
           <button
             onClick={() => setActiveTab('games')}
             className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${

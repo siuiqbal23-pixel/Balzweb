@@ -1,1 +1,118 @@
 @import "tailwindcss";
+
+/* TopupBalz lightweight theme foundation */
+:root {
+  color-scheme: dark;
+  background: #07090d;
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+  background: #f7f7f8;
+}
+html, body, #root { min-height: 100%; }
+body { margin: 0; background: #07090d; }
+:root[data-theme="light"] body { background: #f7f7f8; color: #171717; }
+
+/* Keep rendering inexpensive on lower-powered phones. */
+.tb-app [class*="blur-"] { filter: none !important; opacity: 0.28; }
+.tb-app [class*="shadow-"] { box-shadow: 0 2px 10px rgba(15, 23, 42, 0.08) !important; }
+.tb-app [class*="backdrop-blur"] {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+/* Light mode surface and text overrides; orange remains the brand accent. */
+:root[data-theme="light"] .tb-app {
+  background: #f7f7f8 !important;
+  color: #202124 !important;
+}
+:root[data-theme="light"] .tb-app [class*="bg-[#"],
+:root[data-theme="light"] .tb-app [class*="bg-slate-950"],
+:root[data-theme="light"] .tb-app [class*="bg-slate-900"],
+:root[data-theme="light"] .tb-app [class*="bg-slate-800"],
+:root[data-theme="light"] .tb-app [class*="bg-[#0"],
+:root[data-theme="light"] .tb-app [class*="bg-[#1"] {
+  background-color: #ffffff !important;
+}
+:root[data-theme="light"] .tb-app [class*="text-white"],
+:root[data-theme="light"] .tb-app [class*="text-slate-100"],
+:root[data-theme="light"] .tb-app [class*="text-slate-200"],
+:root[data-theme="light"] .tb-app [class*="text-slate-300"] {
+  color: #252525 !important;
+}
+:root[data-theme="light"] .tb-app [class*="text-slate-400"],
+:root[data-theme="light"] .tb-app [class*="text-slate-500"] {
+  color: #62666d !important;
+}
+:root[data-theme="light"] .tb-app [class*="border-slate-800"],
+:root[data-theme="light"] .tb-app [class*="border-slate-700"],
+:root[data-theme="light"] .tb-app [class*="border-slate-900"] {
+  border-color: #e5e7eb !important;
+}
+:root[data-theme="light"] .tb-app input,
+:root[data-theme="light"] .tb-app textarea,
+:root[data-theme="light"] .tb-app select {
+  background-color: #ffffff !important;
+  color: #202124 !important;
+  border-color: #d1d5db !important;
+}
+:root[data-theme="light"] .tb-app header {
+  background: rgba(255,255,255,0.96) !important;
+  box-shadow: 0 1px 8px rgba(0,0,0,0.06) !important;
+}
+:root[data-theme="light"] .tb-app nav {
+  background: rgba(255,255,255,0.98) !important;
+  border-color: #e5e7eb !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tb-app *, .tb-app *::before, .tb-app *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+
+/* Admin workspace: premium orange esports atmosphere with inexpensive CSS layers. */
+.admin-scene {
+  background:
+    radial-gradient(ellipse at 12% 8%, rgba(249, 115, 22, 0.16), transparent 34%),
+    radial-gradient(ellipse at 88% 92%, rgba(234, 88, 12, 0.12), transparent 32%),
+    #07090d;
+}
+.admin-panel {
+  background: linear-gradient(155deg, #151a24 0%, #0d1117 48%, #11131a 100%);
+  box-shadow: 0 18px 55px rgba(0, 0, 0, 0.42), 0 0 0 1px rgba(249, 115, 22, 0.06);
+}
+.admin-login-panel {
+  background: linear-gradient(150deg, #1b202b 0%, #0d1117 70%);
+}
+.admin-topbar {
+  background: linear-gradient(100deg, rgba(249, 115, 22, 0.10), #121824 42%, #171923);
+}
+.admin-tabs {
+  background: #0b0e14;
+}
+.admin-panel button {
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+:root[data-theme="light"] .admin-scene {
+  background:
+    radial-gradient(ellipse at 12% 8%, rgba(249, 115, 22, 0.12), transparent 34%),
+    radial-gradient(ellipse at 88% 92%, rgba(234, 88, 12, 0.08), transparent 32%),
+    #f1f3f6;
+}
+:root[data-theme="light"] .admin-panel {
+  background: linear-gradient(155deg, #ffffff 0%, #f8fafc 55%, #fff7ed 100%);
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.13), 0 0 0 1px rgba(249, 115, 22, 0.08);
+}
+:root[data-theme="light"] .admin-login-panel {
+  background: linear-gradient(150deg, #ffffff 0%, #fff7ed 100%);
+}
+:root[data-theme="light"] .admin-topbar {
+  background: linear-gradient(100deg, #fff1e6, #ffffff 55%, #fff7ed);
+}
+:root[data-theme="light"] .admin-tabs {
+  background: #f8fafc;
+}

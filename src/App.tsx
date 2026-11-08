@@ -36,6 +36,20 @@ export default function App() {
   const [activityLogsList, setActivityLogsList] = useState<UserActivityLog[]>([]);
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [onlineCount, setOnlineCount] = useState<number>(1);
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    try {
+      return localStorage.getItem('topupbalz_theme') === 'light' ? 'light' : 'dark';
+    } catch {
+      return 'dark';
+    }
+  });
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    try {
+      localStorage.setItem('topupbalz_theme', theme);
+    } catch {}
+  }, [theme]);
 
   // Username Login Modal & Chat States
   const [loginModalOpen, setLoginModalOpen] = useState(false);
@@ -542,7 +556,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#07090D] text-slate-100 flex flex-col font-sans selection:bg-orange-500 selection:text-slate-950 pb-20">
+    <div data-theme={theme} className="tb-app min-h-screen bg-[#07090D] text-slate-100 flex flex-col font-sans selection:bg-orange-500 selection:text-slate-950 pb-20">
       {toastMessage && (
         <div className="fixed top-20 right-4 z-50 p-4 rounded-2xl bg-slate-900 border border-orange-500/60 text-white text-xs font-bold shadow-[0_0_25px_rgba(255,140,0,0.4)] flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
@@ -570,6 +584,8 @@ export default function App() {
         cartCount={cart.reduce((acc, item) => acc + item.quantity, 0)}
         onOpenCart={() => setCartModalOpen(true)}
         onOpenLiveChat={handleOpenLiveChatWithAuth}
+        theme={theme}
+        onToggleTheme={() => setTheme((current) => current === 'dark' ? 'light' : 'dark')}
       />
 
       {activeTab === 'menu' && (
