@@ -72,3 +72,47 @@ body { margin: 0; background: #07090d; }
     transition-duration: 0.01ms !important;
   }
 }
+
+
+/* Admin workspace: premium orange esports atmosphere with inexpensive CSS layers. */
+.admin-scene {
+  background:
+    radial-gradient(ellipse at 12% 8%, rgba(249, 115, 22, 0.16), transparent 34%),
+    radial-gradient(ellipse at 88% 92%, rgba(234, 88, 12, 0.12), transparent 32%),
+    #07090d;
+}
+.admin-panel {
+  background: linear-gradient(155deg, #151a24 0%, #0d1117 48%, #11131a 100%);
+  box-shadow: 0 18px 55px rgba(0, 0, 0, 0.42), 0 0 0 1px rgba(249, 115, 22, 0.06);
+}
+.admin-login-panel {
+  background: linear-gradient(150deg, #1b202b 0%, #0d1117 70%);
+}
+.admin-topbar {
+  background: linear-gradient(100deg, rgba(249, 115, 22, 0.10), #121824 42%, #171923);
+}
+.admin-tabs {
+  background: #0b0e14;
+}
+.admin-panel button {
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+:root[data-theme="light"] .admin-scene {
+  background:
+    radial-gradient(ellipse at 12% 8%, rgba(249, 115, 22, 0.12), transparent 34%),
+    radial-gradient(ellipse at 88% 92%, rgba(234, 88, 12, 0.08), transparent 32%),
+    #f1f3f6;
+}
+:root[data-theme="light"] .admin-panel {
+  background: linear-gradient(155deg, #ffffff 0%, #f8fafc 55%, #fff7ed 100%);
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.13), 0 0 0 1px rgba(249, 115, 22, 0.08);
+}
+:root[data-theme="light"] .admin-login-panel {
+  background: linear-gradient(150deg, #ffffff 0%, #fff7ed 100%);
+}
+:root[data-theme="light"] .admin-topbar {
+  background: linear-gradient(100deg, #fff1e6, #ffffff 55%, #fff7ed);
+}
+:root[data-theme="light"] .admin-tabs {
+  background: #f8fafc;
+}
