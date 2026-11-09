@@ -20,8 +20,9 @@ import {
   signOut,
   updateProfile,
 } from 'firebase/auth';
+import { doc, runTransaction } from 'firebase/firestore';
 import { UserProfile } from '../types';
-import { auth } from '../lib/firebase';
+import { auth, db } from '../lib/firebase';
 
 type AuthMode = 'signin' | 'signup';
 
@@ -32,19 +33,23 @@ interface UsernameLoginModalProps {
   titleMessage?: string;
 }
 
+const MIN_PASSWORD_LENGTH = 8;
+const USERNAME_PATTERN = /^[a-zA-Z0-9_.]{3,20}$/;
+const USERNAME_RESERVATION_TTL_MS = 10 * 60 * 1000;
+
 function getAuthErrorMessage(error: unknown) {
   const code = (error as { code?: string })?.code;
   switch (code) {
     case 'auth/email-already-in-use':
-      return 'E-mel ini sudah berdaftar. Sila log masuk.';
+      return 'E-mel ini sudah berdaftar. Cuba log masuk menggunakan e-mel dan kata laluan yang sama.';
     case 'auth/invalid-email':
       return 'Format e-mel tidak sah.';
     case 'auth/invalid-credential':
     case 'auth/wrong-password':
     case 'auth/user-not-found':
-      return 'E-mel atau kata laluan salah, atau akaun belum didaftarkan. Jika belum ada akaun, pilih Daftar.';
+      return 'E-mel atau kata laluan tidak sepadan. Semak kedua-duanya atau daftar jika anda belum mempunyai akaun.';
     case 'auth/weak-password':
-      return 'Kata laluan terlalu lemah. Gunakan sekurang-kurangnya 6 aksara.';
+      return `Kata laluan mesti sekurang-kurangnya ${MIN_PASSWORD_LENGTH} aksara.`;
     case 'auth/too-many-requests':
       return 'Terlalu banyak percubaan. Sila tunggu sebentar dan cuba lagi.';
     case 'auth/network-request-failed':
@@ -61,9 +66,13 @@ function getAuthErrorMessage(error: unknown) {
       return 'Pelayar menyekat tetingkap Google. Benarkan pop-up dan cuba lagi.';
     case 'auth/cancelled-popup-request':
       return 'Permintaan Google dibatalkan. Cuba sekali lagi.';
+    case 'permission-denied':
+    case 'firestore/permission-denied':
+      return 'Firebase Firestore menolak semakan username. Semak Firestore Rules untuk koleksi usernames.';
     default:
+      if (code === 'username/already-taken') return 'Username ini sudah digunakan. Pilih username lain.';
       console.error('Firebase Authentication error:', code || error);
-      return 'Tidak dapat memproses akaun. Cuba semula; jika masalah berulang, semak domain Authorized domains dan Firebase Console.';
+      return 'Tidak dapat memproses akaun. Cuba semula; jika masalah berulang, semak Firebase Console.';
   }
 }
 
@@ -88,6 +97,52 @@ function toUserProfile(user: typeof auth.currentUser, fallbackName = ''): UserPr
 
 const emailActionSettings = () => ({ url: window.location.origin, handleCodeInApp: false });
 
+async function reserveUsername(username: string, reservationId: string) {
+  const usernameRef = doc(db, 'usernames', username.toLowerCase());
+  await runTransaction(db, async (transaction) => {
+    const existing = await transaction.get(usernameRef);
+    if (existing.exists()) {
+      const existingData = existing.data();
+      const isExpiredReservation =
+        !existingData.ownerUid &&
+        typeof existingData.reservedAt === 'number' &&
+        Date.now() - existingData.reservedAt > USERNAME_RESERVATION_TTL_MS;
+      if (!isExpiredReservation) {
+        const error = new Error('Username is already taken');
+        (error as Error & { code: string }).code = 'username/already-taken';
+        throw error;
+      }
+    }
+    transaction.set(usernameRef, {
+      username,
+      reservationId,
+      reservedAt: Date.now(),
+      ownerUid: null,
+    });
+  });
+}
+
+async function finalizeUsernameReservation(username: string, reservationId: string, uid: string) {
+  const usernameRef = doc(db, 'usernames', username.toLowerCase());
+  await runTransaction(db, async (transaction) => {
+    const reservation = await transaction.get(usernameRef);
+    if (!reservation.exists() || reservation.data().reservationId !== reservationId) {
+      throw new Error('Username reservation expired; please try signup again.');
+    }
+    transaction.update(usernameRef, { ownerUid: uid, reservedAt: null });
+  });
+}
+
+async function releaseUsernameReservation(username: string, reservationId: string) {
+  const usernameRef = doc(db, 'usernames', username.toLowerCase());
+  await runTransaction(db, async (transaction) => {
+    const reservation = await transaction.get(usernameRef);
+    if (reservation.exists() && reservation.data().reservationId === reservationId && !reservation.data().ownerUid) {
+      transaction.delete(usernameRef);
+    }
+  });
+}
+
 export const UsernameLoginModal: React.FC<UsernameLoginModalProps> = ({
   isOpen,
   onClose,
@@ -95,7 +150,7 @@ export const UsernameLoginModal: React.FC<UsernameLoginModalProps> = ({
   titleMessage = 'Akaun TopupBalz',
 }) => {
   const [mode, setMode] = useState<AuthMode>('signin');
-  const [name, setName] = useState('');
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -117,28 +172,52 @@ export const UsernameLoginModal: React.FC<UsernameLoginModalProps> = ({
     event.preventDefault();
     setErrorMessage('');
     setNotice('');
+
+    const cleanEmail = email.trim();
+    const cleanUsername = username.trim();
+    if (mode === 'signup') {
+      if (!USERNAME_PATTERN.test(cleanUsername)) {
+        setErrorMessage('Username mesti 3–20 aksara dan hanya boleh mengandungi huruf, nombor, titik (.) atau garis bawah (_).');
+        return;
+      }
+      if (password.length < MIN_PASSWORD_LENGTH) {
+        setErrorMessage(`Kata laluan mesti sekurang-kurangnya ${MIN_PASSWORD_LENGTH} aksara.`);
+        return;
+      }
+    }
+
     setLoading(true);
+    let reservationId: string | null = null;
+    let reservationFinalized = false;
     try {
       if (mode === 'signup') {
-        const credential = await createUserWithEmailAndPassword(auth, email.trim(), password);
-        const displayName = name.trim();
-        if (displayName) await updateProfile(credential.user, { displayName });
+        reservationId = `${Date.now()}_${Math.random().toString(36).slice(2)}`;
+        await reserveUsername(cleanUsername, reservationId);
+
+        const credential = await createUserWithEmailAndPassword(auth, cleanEmail, password);
+        await updateProfile(credential.user, { displayName: cleanUsername });
+        await finalizeUsernameReservation(cleanUsername, reservationId, credential.user.uid);
+        reservationFinalized = true;
+
         try {
           await sendEmailVerification(credential.user, emailActionSettings());
         } catch (verificationError) {
           console.error('Could not send verification email:', verificationError);
-          setErrorMessage(`Akaun telah dibuat, tetapi pautan pengesahan gagal dihantar. ${getAuthErrorMessage(verificationError)}`);
+          setErrorMessage(`Akaun dan username @${cleanUsername} telah dibuat, tetapi pautan pengesahan gagal dihantar. ${getAuthErrorMessage(verificationError)}`);
+          await signOut(auth);
+          localStorage.removeItem('topupbalz_current_user');
           return;
         }
+
         await signOut(auth);
         localStorage.removeItem('topupbalz_current_user');
         setMode('signin');
         setPassword('');
-        setNotice(`Pautan pengesahan dihantar ke ${email.trim()}. Sahkan e-mel dahulu sebelum log masuk.`);
+        setNotice(`Akaun @${cleanUsername} berjaya didaftarkan. Pautan pengesahan dihantar ke ${cleanEmail}. Sahkan e-mel dahulu sebelum log masuk.`);
         return;
       }
 
-      const credential = await signInWithEmailAndPassword(auth, email.trim(), password);
+      const credential = await signInWithEmailAndPassword(auth, cleanEmail, password);
       if (!credential.user.emailVerified) {
         try {
           await sendEmailVerification(credential.user, emailActionSettings());
@@ -154,6 +233,13 @@ export const UsernameLoginModal: React.FC<UsernameLoginModalProps> = ({
     } catch (error) {
       setErrorMessage(getAuthErrorMessage(error));
     } finally {
+      if (reservationId && !reservationFinalized && mode === 'signup') {
+        try {
+          await releaseUsernameReservation(username.trim(), reservationId);
+        } catch (releaseError) {
+          console.error('Could not release username reservation:', releaseError);
+        }
+      }
       setLoading(false);
     }
   };
@@ -207,7 +293,7 @@ export const UsernameLoginModal: React.FC<UsernameLoginModalProps> = ({
           <div className="auth-brand-mark mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl text-slate-950"><Flame className="h-7 w-7 fill-current" /></div>
           <div className="auth-badge mb-3"><ShieldCheck className="h-3.5 w-3.5" /> Akaun dilindungi Firebase</div>
           <h2 id="account-modal-title" className="auth-title text-2xl font-black text-white">{mode === 'signup' ? 'Cipta akaun anda' : titleMessage}</h2>
-          <p className="auth-subtitle mt-2 text-sm leading-6">{mode === 'signup' ? 'Daftar untuk mula menggunakan akaun TopupBalz.' : 'Log masuk untuk meneruskan ke akaun TopupBalz.'}</p>
+          <p className="auth-subtitle mt-2 text-sm leading-6">{mode === 'signup' ? 'Daftar dengan username unik dan e-mel anda.' : 'Log masuk menggunakan e-mel dan kata laluan berdaftar.'}</p>
         </div>
         <div className="auth-toggle-wrap relative mt-6">
           <button type="button" onClick={() => switchMode('signin')} aria-pressed={mode === 'signin'} className={`auth-toggle-btn ${mode === 'signin' ? 'auth-toggle-btn--active' : 'auth-toggle-btn--idle'}`}>Log Masuk</button>
@@ -216,9 +302,9 @@ export const UsernameLoginModal: React.FC<UsernameLoginModalProps> = ({
         {errorMessage && <div role="alert" className="auth-error-box mt-4 flex items-start gap-2"><AlertCircle className="mt-0.5 h-4 w-4 shrink-0" /><span>{errorMessage}</span></div>}
         {notice && <p role="status" className="mt-4 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-300">{notice}</p>}
         <form onSubmit={handleSubmit} className="relative mt-5 space-y-4">
-          {mode === 'signup' && <label className="block"><span className="auth-field-label">Nama paparan</span><span className="auth-input-wrap"><UserRound className="auth-input-icon h-4 w-4" /><input type="text" autoComplete="name" required maxLength={60} value={name} onChange={(event) => setName(event.target.value)} placeholder="Nama anda" className="auth-input" /></span></label>}
+          {mode === 'signup' && <label className="block"><span className="auth-field-label">Username unik</span><span className="auth-input-wrap"><UserRound className="auth-input-icon h-4 w-4" /><input type="text" autoComplete="username" required minLength={3} maxLength={20} pattern="[A-Za-z0-9_.]{3,20}" value={username} onChange={(event) => setUsername(event.target.value)} placeholder="Contoh: pemain_balz" className="auth-input" /></span><span className="mt-1 block text-xs text-slate-400">3–20 aksara: huruf, nombor, titik atau _</span></label>}
           <label className="block"><span className="auth-field-label">E-mel</span><span className="auth-input-wrap"><Mail className="auth-input-icon h-4 w-4" /><input type="email" autoComplete="email" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="nama@email.com" className="auth-input" /></span></label>
-          <label className="block"><span className="auth-field-label">Kata laluan</span><span className="auth-input-wrap"><LockKeyhole className="auth-input-icon h-4 w-4" /><input type={showPassword ? 'text' : 'password'} autoComplete={mode === 'signup' ? 'new-password' : 'current-password'} required minLength={6} value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Sekurang-kurangnya 6 aksara" className="auth-input pr-12" /><button type="button" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? 'Sembunyikan kata laluan' : 'Tunjukkan kata laluan'} className="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 text-slate-500 hover:text-orange-300">{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button></span></label>
+          <label className="block"><span className="auth-field-label">Kata laluan</span><span className="auth-input-wrap"><LockKeyhole className="auth-input-icon h-4 w-4" /><input type={showPassword ? 'text' : 'password'} autoComplete={mode === 'signup' ? 'new-password' : 'current-password'} required minLength={mode === 'signup' ? MIN_PASSWORD_LENGTH : 1} value={password} onChange={(event) => setPassword(event.target.value)} placeholder={mode === 'signup' ? 'Sekurang-kurangnya 8 aksara' : 'Kata laluan anda'} className="auth-input pr-12" /><button type="button" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? 'Sembunyikan kata laluan' : 'Tunjukkan kata laluan'} className="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 text-slate-500 hover:text-orange-300">{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button></span>{mode === 'signup' && <span className="mt-1 block text-xs text-slate-400">Minimum 8 aksara.</span>}</label>
           {mode === 'signin' && <button type="button" onClick={handlePasswordReset} disabled={loading} className="auth-link-btn text-xs disabled:opacity-50">Lupa kata laluan? Hantar pautan ke e-mel</button>}
           <button type="submit" disabled={loading} className="auth-submit-btn" style={{ display: 'flex', visibility: 'visible', opacity: 1, position: 'relative', zIndex: 2, width: '100%', minHeight: 56, alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #f97316, #fbbf24)', color: '#111827', border: '2px solid #fdba74', borderRadius: 16, fontSize: 16, fontWeight: 900, letterSpacing: '0.04em', cursor: loading ? 'wait' : 'pointer' }}>
             {loading ? 'Sedang diproses…' : mode === 'signup' ? 'Daftar akaun' : 'Log masuk'}
