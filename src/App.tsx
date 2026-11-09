@@ -25,6 +25,8 @@ import {
   calculateSellPrice,
 } from './data/initialData';
 import { Flame, Zap, Gamepad2, CheckCircle2, Filter, Sparkles, ShieldCheck, Clock3, Star } from 'lucide-react';
+import { auth } from './lib/firebase';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
 
 export default function App() {
   const [games, setGames] = useState<Game[]>(INITIAL_GAMES);
@@ -59,6 +61,40 @@ export default function App() {
   const [nineDotsOpen, setNineDotsOpen] = useState(false);
   const [calculatorOpen, setCalculatorOpen] = useState(false);
 
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (!firebaseUser) {
+        setCurrentUser(null);
+        try {
+          localStorage.removeItem('topupbalz_current_user');
+        } catch {}
+        return;
+      }
+
+      const nextUser: UserProfile = {
+        id: firebaseUser.uid,
+        email: firebaseUser.email || '',
+        name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'TopupBalz User',
+        avatarUrl: firebaseUser.photoURL || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(firebaseUser.email || firebaseUser.uid)}`,
+        googleId: firebaseUser.uid,
+        phoneNumber: firebaseUser.phoneNumber || '',
+        createdAt: firebaseUser.metadata.creationTime || new Date().toISOString(),
+        lastLoginAt: firebaseUser.metadata.lastSignInTime || new Date().toISOString(),
+        totalOrders: 0,
+        totalSpent: 0,
+        isOnline: true,
+        isEmailVerified: firebaseUser.emailVerified,
+      };
+
+      setCurrentUser(nextUser);
+      try {
+        localStorage.setItem('topupbalz_current_user', JSON.stringify(nextUser));
+      } catch {}
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   // Restore current user from local storage
   useEffect(() => {
     const stored = localStorage.getItem('topupbalz_current_user');
@@ -79,6 +115,20 @@ export default function App() {
     } else {
       setLiveChatOpen(true);
     }
+  };
+
+  const handleAuthLogout = async () => {
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error('Failed to sign out from Firebase:', error);
+    }
+
+    setCurrentUser(null);
+    try {
+      localStorage.removeItem('topupbalz_current_user');
+    } catch {}
+    showToast('Log keluar berjaya.');
   };
 
   // Troli Pembelian & Live Chat Admin States
@@ -636,7 +686,7 @@ export default function App() {
                         const el = document.getElementById('catalog-section');
                         if (el) el.scrollIntoView({ behavior: 'smooth' });
                       }}
-                      className="px-5 py-3 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider shadow-[0_0_25px_rgba(249,115,22,0.4)]"
+                      className="px-5 py-3 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider shadow-[0_0_25px_rgba(249,115,22,0.45)]"
                     >
                       Beli Sekarang
                     </button>
@@ -881,11 +931,7 @@ export default function App() {
               setCurrentUser(user);
               showToast(`Selamat datang ${user.name}! Akaun berjaya didaftarkan.`);
             }}
-            onLogOut={() => {
-              setCurrentUser(null);
-              localStorage.removeItem('topupbalz_current_user');
-              showToast('Log keluar berjaya.');
-            }}
+            onLogOut={handleAuthLogout}
             onUpdatePhone={handleUpdatePhone}
             onVerifyEmail={handleVerifyEmail}
             onOpenGmailModal={handleOpenGmailModal}
@@ -911,7 +957,7 @@ export default function App() {
 
               <button
                 onClick={() => setAdminOpen(true)}
-                className="px-6 py-3 rounded-2xl bg-gradient-to-r from-rose-500 to-orange-500 text-slate-950 font-black text-xs uppercase tracking-wider shadow-[0_0_25px_rgba(244,63,94,0.5)] hover:scale-[1.02] transition-transform"
+                className="px-6 py-3 rounded-2xl bg-gradient-to-r from-rose-500 to-orange-500 text-slate-950 font-black text-xs uppercase tracking-wider shadow-[0_0_25px_rgba(244,63,94,0.5)] hover:brightness-110"
               >
                 Buka Full Window Panel
               </button>
