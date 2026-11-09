@@ -17,6 +17,7 @@ import {
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signInWithPopup,
+  signOut,
   updateProfile,
 } from 'firebase/auth';
 import { UserProfile } from '../types';
@@ -35,7 +36,7 @@ function getAuthErrorMessage(error: unknown) {
   const code = (error as { code?: string })?.code;
   switch (code) {
     case 'auth/email-already-in-use':
-      return 'E-mel ini sudah mempunyai akaun. Cuba log masuk.';
+      return 'E-mel ini sudah berdaftar. Sila log masuk.';
     case 'auth/invalid-email':
       return 'Format e-mel tidak sah.';
     case 'auth/invalid-credential':
@@ -49,9 +50,9 @@ function getAuthErrorMessage(error: unknown) {
     case 'auth/network-request-failed':
       return 'Sambungan internet bermasalah. Sila cuba lagi.';
     case 'auth/operation-not-allowed':
-      return 'Penyedia log masuk ini belum diaktifkan dalam Firebase Console.';
+      return 'Kaedah ini belum diaktifkan dalam Firebase Authentication.';
     case 'auth/unauthorized-domain':
-      return `Domain ${window.location.hostname} belum dibenarkan dalam Firebase Authentication → Settings → Authorized domains.`;
+      return `Domain ${window.location.hostname} belum dibenarkan. Tambah domain ini dalam Firebase Authentication > Settings > Authorized domains.`;
     case 'auth/invalid-api-key':
       return 'Firebase API key tidak sah. Semak konfigurasi Firebase projek web.';
     case 'auth/popup-closed-by-user':
@@ -62,7 +63,7 @@ function getAuthErrorMessage(error: unknown) {
       return 'Permintaan Google dibatalkan. Cuba sekali lagi.';
     default:
       console.error('Firebase Authentication error:', code || error);
-      return 'Tidak dapat memproses akaun sekarang. Cuba semula; jika berulang, semak domain yang dibenarkan dan Firebase Console.';
+      return 'Tidak dapat memproses akaun. Cuba semula; jika masalah berulang, semak domain Authorized domains dan Firebase Console.';
   }
 }
 
@@ -84,6 +85,11 @@ function toUserProfile(user: typeof auth.currentUser, fallbackName = ''): UserPr
     isEmailVerified: user.emailVerified,
   };
 }
+
+const emailActionSettings = () => ({
+  url: window.location.origin,
+  handleCodeInApp: false,
+});
 
 export const UsernameLoginModal: React.FC<UsernameLoginModalProps> = ({
   isOpen,
@@ -121,17 +127,38 @@ export const UsernameLoginModal: React.FC<UsernameLoginModalProps> = ({
         const credential = await createUserWithEmailAndPassword(auth, email.trim(), password);
         const displayName = name.trim();
         if (displayName) await updateProfile(credential.user, { displayName });
+
         try {
-          await sendEmailVerification(credential.user);
-          setNotice('Pautan pengesahan telah dihantar ke e-mel anda.');
+          await sendEmailVerification(credential.user, emailActionSettings());
         } catch (verificationError) {
-          console.warn('Could not send verification email:', verificationError);
+          console.error('Could not send verification email:', verificationError);
+          setErrorMessage(`Akaun telah dibuat, tetapi pautan pengesahan gagal dihantar. Semak tetapan email Firebase dan cuba daftar masuk semula untuk minta pautan baharu. ${getAuthErrorMessage(verificationError)}`);
+          return;
         }
-        completeSignIn(credential.user, displayName);
-      } else {
-        const credential = await signInWithEmailAndPassword(auth, email.trim(), password);
-        completeSignIn(credential.user);
+
+        // Do not create an app session until the user verifies their email.
+        await signOut(auth);
+        localStorage.removeItem('topupbalz_current_user');
+        setMode('signin');
+        setPassword('');
+        setNotice(`Pautan pengesahan telah dihantar ke ${email.trim()}. Buka e-mel itu dan sahkan akaun sebelum log masuk. Semak folder spam jika tiada dalam inbox.`);
+        return;
       }
+
+      const credential = await signInWithEmailAndPassword(auth, email.trim(), password);
+      if (!credential.user.emailVerified) {
+        try {
+          await sendEmailVerification(credential.user, emailActionSettings());
+        } catch (verificationError) {
+          console.error('Could not resend verification email:', verificationError);
+        }
+        await signOut(auth);
+        localStorage.removeItem('topupbalz_current_user');
+        setErrorMessage('E-mel ini belum disahkan. Kami cuba hantar semula pautan pengesahan—sahkan e-mel dahulu, kemudian log masuk.');
+        return;
+      }
+
+      completeSignIn(credential.user);
     } catch (error) {
       setErrorMessage(getAuthErrorMessage(error));
     } finally {
@@ -164,13 +191,8 @@ export const UsernameLoginModal: React.FC<UsernameLoginModalProps> = ({
     }
     setLoading(true);
     try {
-      // Firebase sends a secure reset link (not a numeric verification code).
-      // After completing the reset, return the user to the deployed app.
-      await sendPasswordResetEmail(auth, email.trim(), {
-        url: window.location.origin,
-        handleCodeInApp: false,
-      });
-      setNotice('Jika e-mel itu berdaftar, Firebase akan menghantar pautan selamat untuk menetapkan kata laluan baharu. Pautan itu akan kembali ke laman ini selepas selesai.');
+      await sendPasswordResetEmail(auth, email.trim(), emailActionSettings());
+      setNotice('Jika e-mel ini berdaftar, Firebase akan menghantar pautan selamat untuk menetapkan kata laluan baharu. Pautan itu akan kembali ke laman ini selepas selesai.');
     } catch (error) {
       setErrorMessage(getAuthErrorMessage(error));
     } finally {
@@ -186,7 +208,7 @@ export const UsernameLoginModal: React.FC<UsernameLoginModalProps> = ({
 
   return (
     <div
-      className="auth-shell fixed inset-0 z-[130] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+      className="auth-modal-backdrop fixed inset-0 z-[130] flex items-center justify-center p-4"
       role="presentation"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose();
@@ -196,9 +218,9 @@ export const UsernameLoginModal: React.FC<UsernameLoginModalProps> = ({
         role="dialog"
         aria-modal="true"
         aria-labelledby="account-modal-title"
-        className="auth-card relative max-h-[92vh] w-full max-w-md overflow-y-auto rounded-[28px] p-6 sm:p-8"
+        className="auth-modal-panel relative max-h-[92vh] w-full max-w-md overflow-y-auto rounded-[28px] p-6 sm:p-8"
       >
-        <div className="pointer-events-none absolute -right-20 -top-24 h-56 w-56 rounded-full bg-orange-500/10 blur-3xl" />
+        <div className="auth-glow" />
         <button
           type="button"
           onClick={onClose}
@@ -212,10 +234,10 @@ export const UsernameLoginModal: React.FC<UsernameLoginModalProps> = ({
           <div className="auth-brand-mark mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl text-slate-950">
             <Flame className="h-7 w-7 fill-current" />
           </div>
-          <div className="auth-pill mb-2 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-orange-300">
+          <div className="auth-badge mb-3">
             <ShieldCheck className="h-3.5 w-3.5" /> Akaun dilindungi Firebase
           </div>
-          <h2 id="account-modal-title" className="auth-title text-2xl font-black tracking-tight text-white">
+          <h2 id="account-modal-title" className="auth-title text-2xl font-black text-white">
             {mode === 'signup' ? 'Cipta akaun anda' : titleMessage}
           </h2>
           <p className="auth-subtitle mt-2 text-sm leading-6">
