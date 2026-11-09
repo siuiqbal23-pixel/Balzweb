@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">TopupBalz</title>
+  <rect width="512" height="512" rx="72" fill="#000"/>
+  <path fill="#ff7900" d="M169 55h182c80 0 126 41 126 103 0 42-22 75-62 91 51 12 78 46 78 94 0 70-52 114-139 114H151l92-92h111c31 0 48-14 48-37 0-22-17-35-48-35h-94l62-63h29c29 0 46-14 46-36 0-21-17-35-46-35H225l-70 145H74z"/>
+  <path fill="#000" d="m300 159-86 121h82l-137 143 45-111h-65l87-153z"/>
+</svg>
