@@ -33,7 +33,6 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
   onLoginSuccess,
   onLogOut,
   onOpenGmailModal,
-  onOpenAdmin,
 }) => {
   const [loginOpen, setLoginOpen] = useState(false);
   const [verified, setVerified] = useState(Boolean(currentUser?.isEmailVerified));
@@ -72,6 +71,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
       await reload(firebaseUser);
       if (firebaseUser.emailVerified) {
         setVerified(true);
+        if (currentUser) onLoginSuccess({ ...currentUser, isEmailVerified: true });
         setMessage('E-mel anda sudah disahkan.');
       } else {
         await sendEmailVerification(firebaseUser);
@@ -114,20 +114,8 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
     );
   }
 
-  const isAdminAccount = currentUser.name.toLowerCase().includes('balzz') || currentUser.email.toLowerCase().startsWith('balzz');
-
   return (
     <div className="mx-auto max-w-4xl space-y-6 px-4 py-8">
-      {isAdminAccount && onOpenAdmin && (
-        <section className="flex flex-col items-center justify-between gap-4 rounded-3xl border border-rose-500/30 bg-gradient-to-r from-rose-950/70 to-slate-900 p-5 sm:flex-row">
-          <div>
-            <p className="text-xs font-black uppercase tracking-widest text-rose-300">Admin workspace</p>
-            <h2 className="mt-1 text-lg font-black text-white">Panel pentadbir</h2>
-          </div>
-          <button onClick={onOpenAdmin} className="rounded-xl bg-rose-500 px-5 py-3 text-xs font-black text-white transition hover:bg-rose-400">Buka panel admin</button>
-        </section>
-      )}
-
       <section className="overflow-hidden rounded-[28px] border border-orange-500/20 bg-gradient-to-br from-slate-900 via-[#0d1117] to-[#111820] p-6 shadow-xl shadow-black/20 sm:p-8">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex min-w-0 flex-col items-center gap-4 text-center sm:flex-row sm:text-left">
