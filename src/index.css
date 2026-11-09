@@ -73,7 +73,6 @@ body { margin: 0; background: #07090d; }
   }
 }
 
-
 /* Admin workspace: premium orange esports atmosphere with inexpensive CSS layers. */
 .admin-scene {
   background:
@@ -115,4 +114,77 @@ body { margin: 0; background: #07090d; }
 }
 :root[data-theme="light"] .admin-tabs {
   background: #f8fafc;
+}
+
+/* Premium auth polish */
+.tb-app {
+  background:
+    radial-gradient(circle at top, rgba(249, 115, 22, 0.18), transparent 30%),
+    radial-gradient(circle at bottom right, rgba(59, 130, 246, 0.08), transparent 30%),
+    #07090d;
+}
+
+.auth-shell {
+  background:
+    radial-gradient(circle at top, rgba(249, 115, 22, 0.18), transparent 28%),
+    linear-gradient(145deg, rgba(15, 23, 42, 0.98), rgba(9, 14, 20, 0.98));
+}
+
+.auth-card {
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.94));
+  border: 1px solid rgba(249, 115, 22, 0.22);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.02);
+}
+
+.auth-brand-mark {
+  background: linear-gradient(135deg, #f97316 0%, #fbbf24 100%);
+  box-shadow: 0 18px 35px rgba(249, 115, 22, 0.35);
+}
+
+.auth-pill {
+  background: rgba(249, 115, 22, 0.12);
+  border: 1px solid rgba(249, 115, 22, 0.25);
+}
+
+.auth-tab {
+  transition: all 180ms ease;
+}
+
+.auth-tab.active {
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
+}
+
+.auth-field {
+  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.auth-field:focus {
+  border-color: rgba(249, 115, 22, 0.8);
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.12);
+}
+
+.auth-btn-primary {
+  background: linear-gradient(135deg, #f97316 0%, #fbbf24 100%);
+  box-shadow: 0 16px 30px rgba(249, 115, 22, 0.3);
+}
+
+.auth-btn-primary:hover {
+  filter: brightness(1.05);
+}
+
+.auth-btn-google {
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.84));
+  border: 1px solid rgba(148, 163, 184, 0.22);
+}
+
+.auth-btn-google:hover {
+  border-color: rgba(148, 163, 184, 0.42);
+}
+
+@media (max-width: 640px) {
+  .auth-card {
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.32);
+  }
 }
