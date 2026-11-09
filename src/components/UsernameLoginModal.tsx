@@ -174,7 +174,7 @@ export const UsernameLoginModal: React.FC<UsernameLoginModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-[130] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+      className="auth-shell fixed inset-0 z-[130] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
       role="presentation"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose();
@@ -184,7 +184,7 @@ export const UsernameLoginModal: React.FC<UsernameLoginModalProps> = ({
         role="dialog"
         aria-modal="true"
         aria-labelledby="account-modal-title"
-        className="relative max-h-[92vh] w-full max-w-md overflow-y-auto rounded-[28px] border border-orange-500/25 bg-[#0d1117] p-6 shadow-2xl shadow-orange-950/30 sm:p-8"
+        className="auth-card relative max-h-[92vh] w-full max-w-md overflow-y-auto rounded-[28px] p-6 sm:p-8"
       >
         <div className="pointer-events-none absolute -right-20 -top-24 h-56 w-56 rounded-full bg-orange-500/10 blur-3xl" />
         <button
@@ -197,10 +197,10 @@ export const UsernameLoginModal: React.FC<UsernameLoginModalProps> = ({
         </button>
 
         <div className="relative text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 to-amber-400 text-slate-950 shadow-lg shadow-orange-900/30">
+          <div className="auth-brand-mark mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl text-slate-950">
             <Flame className="h-7 w-7 fill-current" />
           </div>
-          <div className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-orange-500/25 bg-orange-500/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-orange-300">
+          <div className="auth-pill mb-2 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-orange-300">
             <ShieldCheck className="h-3.5 w-3.5" /> Akaun dilindungi Firebase
           </div>
           <h2 id="account-modal-title" className="text-2xl font-black tracking-tight text-white">
@@ -214,10 +214,10 @@ export const UsernameLoginModal: React.FC<UsernameLoginModalProps> = ({
         </div>
 
         <div className="relative mt-6 grid grid-cols-2 rounded-2xl border border-slate-800 bg-slate-950/70 p-1">
-          <button type="button" onClick={() => switchMode('signin')} aria-pressed={mode === 'signin'} className={`rounded-xl px-3 py-2.5 text-sm font-bold transition ${mode === 'signin' ? 'bg-orange-500 text-slate-950' : 'text-slate-400 hover:text-white'}`}>
+          <button type="button" onClick={() => switchMode('signin')} aria-pressed={mode === 'signin'} className={`auth-tab rounded-xl px-3 py-2.5 text-sm font-bold transition ${mode === 'signin' ? 'auth-tab active bg-orange-500 text-slate-950' : 'text-slate-400 hover:text-white'}`}>
             Log Masuk
           </button>
-          <button type="button" onClick={() => switchMode('signup')} aria-pressed={mode === 'signup'} className={`rounded-xl px-3 py-2.5 text-sm font-bold transition ${mode === 'signup' ? 'bg-orange-500 text-slate-950' : 'text-slate-400 hover:text-white'}`}>
+          <button type="button" onClick={() => switchMode('signup')} aria-pressed={mode === 'signup'} className={`auth-tab rounded-xl px-3 py-2.5 text-sm font-bold transition ${mode === 'signup' ? 'auth-tab active bg-orange-500 text-slate-950' : 'text-slate-400 hover:text-white'}`}>
             Daftar
           </button>
         </div>
@@ -236,7 +236,7 @@ export const UsernameLoginModal: React.FC<UsernameLoginModalProps> = ({
               <span className="text-xs font-semibold text-slate-300">Nama paparan</span>
               <span className="relative block">
                 <UserRound className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
-                <input type="text" autoComplete="name" required maxLength={60} value={name} onChange={(event) => setName(event.target.value)} placeholder="Nama anda" className="w-full rounded-xl border border-slate-700 bg-slate-950/70 py-3 pl-10 pr-4 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-orange-500" />
+                <input type="text" autoComplete="name" required maxLength={60} value={name} onChange={(event) => setName(event.target.value)} placeholder="Nama anda" className="auth-field w-full rounded-xl py-3 pl-10 pr-4 text-sm text-white outline-none placeholder:text-slate-600" />
               </span>
             </label>
           )}
@@ -244,14 +244,14 @@ export const UsernameLoginModal: React.FC<UsernameLoginModalProps> = ({
             <span className="text-xs font-semibold text-slate-300">E-mel</span>
             <span className="relative block">
               <Mail className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
-              <input type="email" autoComplete="email" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="nama@email.com" className="w-full rounded-xl border border-slate-700 bg-slate-950/70 py-3 pl-10 pr-4 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-orange-500" />
+              <input type="email" autoComplete="email" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="nama@email.com" className="auth-field w-full rounded-xl py-3 pl-10 pr-4 text-sm text-white outline-none placeholder:text-slate-600" />
             </span>
           </label>
           <label className="block space-y-1.5">
             <span className="text-xs font-semibold text-slate-300">Kata laluan</span>
             <span className="relative block">
               <LockKeyhole className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
-              <input type={showPassword ? 'text' : 'password'} autoComplete={mode === 'signup' ? 'new-password' : 'current-password'} required minLength={6} value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Sekurang-kurangnya 6 aksara" className="w-full rounded-xl border border-slate-700 bg-slate-950/70 py-3 pl-10 pr-12 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-orange-500" />
+              <input type={showPassword ? 'text' : 'password'} autoComplete={mode === 'signup' ? 'new-password' : 'current-password'} required minLength={6} value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Sekurang-kurangnya 6 aksara" className="auth-field w-full rounded-xl py-3 pl-10 pr-12 text-sm text-white outline-none placeholder:text-slate-600" />
               <button type="button" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? 'Sembunyikan kata laluan' : 'Tunjukkan kata laluan'} className="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 text-slate-500 hover:text-white">
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
@@ -262,7 +262,7 @@ export const UsernameLoginModal: React.FC<UsernameLoginModalProps> = ({
               Lupa kata laluan?
             </button>
           )}
-          <button type="submit" disabled={loading} className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-400 px-4 py-3.5 text-sm font-black text-slate-950 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60">
+          <button type="submit" disabled={loading} className="auth-btn-primary flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3.5 text-sm font-black text-slate-950 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60">
             {loading ? 'Sedang diproses…' : mode === 'signup' ? 'Daftar akaun' : 'Log masuk'}
           </button>
         </form>
@@ -270,7 +270,7 @@ export const UsernameLoginModal: React.FC<UsernameLoginModalProps> = ({
         <div className="relative my-5 flex items-center gap-3 text-[10px] font-semibold uppercase tracking-widest text-slate-600">
           <span className="h-px flex-1 bg-slate-800" /> atau <span className="h-px flex-1 bg-slate-800" />
         </div>
-        <button type="button" onClick={handleGoogleSignIn} disabled={loading} className="relative flex w-full items-center justify-center gap-3 rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm font-bold text-slate-200 transition hover:border-slate-500 hover:bg-slate-800 disabled:opacity-50">
+        <button type="button" onClick={handleGoogleSignIn} disabled={loading} className="auth-btn-google relative flex w-full items-center justify-center gap-3 rounded-xl px-4 py-3 text-sm font-bold text-slate-200 transition disabled:opacity-50">
           <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white text-sm font-black text-blue-600">G</span>
           Teruskan dengan Google
         </button>
